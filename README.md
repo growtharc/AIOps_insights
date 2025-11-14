@@ -45,7 +45,7 @@ An intelligent data analysis platform that combines SQL execution with RAG (Retr
 ### 1. Create Environment File
 Create a `.env` file in the project root and add your OpenAI API key:
 ```bash
-echo "VITE_OPENAI_API_KEY=your_openai_api_key_here" > .env
+echo "VITE_OPENAI_API_KEY=your_openai_api_key_here" > .env.local
 ```
 **Note:** The `.env` file is required for the app to access the OpenAI API and Jira. Without it, features that use OpenAI or Jira will not work.
 
