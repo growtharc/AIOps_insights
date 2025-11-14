@@ -1,0 +1,5 @@
+{
+  "name": "AI Support Data Analyst",
+  "description": "An AI-powered assistant to help analyze support ticket data. Ask questions in plain English and get back SQL queries, summaries, and visualization suggestions for your analytics dashboard.",
+  "requestFramePermissions": []
+}
