@@ -43,7 +43,8 @@ def fetch_jira_data():
     SLA_FIELD = field_ids_by_name.get("SLA DAYS")
     TAT_FIELD = field_ids_by_name.get("TAT DAYS")
     CATEGORY_FIELD = field_ids_by_name.get("CATEGORY")
-
+    AIOPS_ENABLED_FIELD = "customfield_10237" # AIOPS Enabled
+    AIOPS_RESOLUTION_FIELD = "customfield_10239" # AIOPS Resolution
     # Step 2: Fetch all issues
     all_issues = []
     next_page_token = None
@@ -117,7 +118,9 @@ def fetch_jira_data():
             "Date_request_solved": f.get("resolutiondate"),
             "SLA (Days)": f.get(SLA_FIELD),
             "TAT (days)": f.get(TAT_FIELD),
-            "Month": month
+            "Month": month,
+            "AIOPS Enabled": f.get(AIOPS_ENABLED_FIELD),
+            "AIOPS Resolution": f.get(AIOPS_RESOLUTION_FIELD)
         })
 
     return rows

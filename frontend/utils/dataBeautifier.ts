@@ -142,8 +142,8 @@ const beautifyColumnName = (name: string): string => {
 /**
  * Formats a number with appropriate locale and decimal places
  */
-const formatNumber = (value: number, columnName: string): string | number => {
-  const lowerName = columnName.toLowerCase();
+const formatNumber = (value: number, columnName: string | null | undefined): string | number => {
+  const lowerName = (columnName || '').toLowerCase();
   
   // Check if it's a percentage
   if (lowerName.includes('percent') || lowerName.includes('rate') || lowerName.includes('ratio')) {
@@ -269,7 +269,10 @@ export const beautifyChartData = (data: Record<string, any>[]): Record<string, a
 /**
  * Formats tooltip values for better display
  */
-export const formatTooltipValue = (value: any, name: string): string => {
+export const formatTooltipValue = (value: any, name: string | null | undefined): string => {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
   if (typeof value === 'number') {
     return formatNumber(value, name).toString();
   }
@@ -302,4 +305,3 @@ export const formatAxisTick = (value: any, columnName: string): string => {
   
   return String(value);
 };
-
