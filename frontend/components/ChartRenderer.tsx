@@ -19,10 +19,14 @@ const DownloadIcon = ({ className }: { className?: string }) => (
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const mainLabel = label !== undefined && label !== null ? String(label) : (payload[0]?.name || 'N/A');
+    const mainLabel = (label && label !== 'undefined') ? String(label) : (payload[0]?.name || 'N/A');
+    const isMainLabelRedundant = payload[0] && payload[0].name === mainLabel;
+
     return (
       <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3 rounded-md shadow-lg text-sm">
-        <p className="label text-gray-700 font-semibold mb-1">{`${mainLabel}`}</p>
+        {!isMainLabelRedundant && mainLabel !== 'N/A' && (
+          <p className="label text-gray-700 font-semibold mb-1">{`${mainLabel}`}</p>
+        )}
         {payload.map((pld: any, index: number) => (
             <p key={index} style={{ color: pld.color }} className="font-medium">
               {`${pld.name}: ${formatTooltipValue(pld.value, pld.name)}`}
