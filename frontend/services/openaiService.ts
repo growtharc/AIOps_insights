@@ -9,12 +9,15 @@ if (!API_KEY) {
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
     console.warn("VITE_OPENAI_API_KEY environment variable not set. The app will not function until this is set.");
+    console.warn("Please create a .env file in the frontend/ directory with VITE_OPENAI_API_KEY=your_key");
+    console.warn("Then restart the dev server with 'npm run dev'");
   } else {
     throw new Error("VITE_OPENAI_API_KEY environment variable not set.");
   }
 }
 
-const openai = new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
+// Only create the OpenAI client if API_KEY is available
+const openai = API_KEY ? new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true }) : null;
 
 const baseSystemInstruction = `
 You are a world-class AI data analyst specializing in IT Service Management (ITSM) data. Your task is to translate user questions into valid SQL queries that can be run on a backend SQLite database (table name: data). Your main goal is to provide actionable insights, not just raw data.
@@ -147,6 +150,10 @@ export const createChatSession = (data: CsvData): ChatSession => {
 };
 
 export const sendMessage = async (session: ChatSession, prompt: string): Promise<Omit<AssistantResponse, 'chartData'>> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   try {
     const messages = [
       { role: 'system' as const, content: session.systemInstruction },
@@ -207,6 +214,10 @@ export const retrySQLWithError = async (
   errorMessage: string,
   failedSQL: string
 ): Promise<Omit<AssistantResponse, 'chartData'>> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   const retryPrompt = `Previous attempt failed with this error: "${errorMessage}"\n\nFailed SQL: ${failedSQL}\n\nPlease fix the SQL query and try again.\n\nOriginal question: ${prompt}`;
 
   const messages = [

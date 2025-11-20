@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -7,12 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    environment:
-      - JIRA_BASE_URL=${JIRA_BASE_URL}
-      - JIRA_EMAIL=${JIRA_EMAIL}
-      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
-      - JIRA_PROJECT_KEY=${JIRA_PROJECT_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/app
     restart: unless-stopped

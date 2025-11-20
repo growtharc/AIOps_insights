@@ -42,14 +42,43 @@ An intelligent data analysis platform that combines SQL execution with RAG (Retr
 - Node.js (v16 or higher)
 - Python 3.10–3.12
 
-### 1. Create Environment File
-Create a `.env` file in the project root and add your OpenAI API key:
-```bash
-echo "VITE_OPENAI_API_KEY=your_openai_api_key_here" > .env
-```
-**Note:** The `.env` file is required for the app to access the OpenAI API and Jira. Without it, features that use OpenAI or Jira will not work.
+### 1. Create Environment Files
 
-**Note:** we need to add JIRA creds to the same file a well like VITE_JIRA_DOMAIN, VITE_JIRA_EMAIL, VITE_JIRA_API_TOKEN, VITE_JIRA_JQL_QUERY.
+#### Backend Environment File
+Create a `.env` file in the `backend/` directory with your backend configuration:
+```bash
+# Backend .env file (backend/.env)
+OPENAI_API_KEY=sk-proj-...
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
+JIRA_API_TOKEN=your_jira_api_token
+JIRA_PROJECT_KEY=VD
+JIRA_JQL_QUERY=project = VD ORDER BY created ASC
+```
+
+#### Frontend Environment File
+Create a `.env` file in the `frontend/` directory with your frontend configuration:
+```bash
+# Frontend .env file (frontend/.env)
+# Note: Vite requires the VITE_ prefix for environment variables to be accessible in the browser
+
+# Backend API URL
+VITE_API_BASE_URL=http://localhost:8080
+
+# OpenAI API Key (required for frontend OpenAI calls)
+VITE_OPENAI_API_KEY=sk-proj-...
+
+# Jira Configuration
+VITE_JIRA_DOMAIN=https://your-domain.atlassian.net
+VITE_JIRA_EMAIL=your-email@example.com
+VITE_JIRA_API_TOKEN=your_jira_api_token
+VITE_JIRA_JQL_QUERY=project = VD ORDER BY created ASC
+```
+
+**Important Notes:**
+- The frontend `.env` file must be in the `frontend/` directory (not the project root)
+- All frontend environment variables must be prefixed with `VITE_` to be accessible in the browser
+- After creating or modifying the `.env` file, you must restart the dev server for changes to take effect
 
 
 ### 2. Start the Backend (FastAPI)
@@ -58,9 +87,7 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cd .. # Go back to the project root
-source backend/.venv/bin/activate # Re-activate venv from root context
-uvicorn backend.main:app --host 0.0.0.0 --port 8080 --reload
+uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 ```
 The backend will run at [http://localhost:8080](http://localhost:8080).
 Test with: [http://localhost:8080/healthcheck](http://localhost:8080/healthcheck)
@@ -71,9 +98,15 @@ Test with: [http://localhost:8080/healthcheck](http://localhost:8080/healthcheck
 ```bash
 cd frontend
 npm install
+# Make sure you have created frontend/.env with VITE_OPENAI_API_KEY before starting
 npm run dev
 ```
 The frontend will run at [http://localhost:5173](http://localhost:5173) (or the port shown in terminal).
+
+**Note:** If you see an error about missing `VITE_OPENAI_API_KEY`, ensure:
+1. You have created a `.env` file in the `frontend/` directory (not the project root)
+2. The variable is prefixed with `VITE_` (e.g., `VITE_OPENAI_API_KEY=...`)
+3. You have restarted the dev server after creating/modifying the `.env` file
 
 
 ### 4. Usage
@@ -88,10 +121,15 @@ The easiest way to run the application is using Docker Compose, which orchestrat
 - Docker and Docker Compose installed on your machine.
 
 ### 1. Configure Environment Variables
-Create a `.env` file in the project root (copy from `.env.example` if available, or use the template below):
+
+For Docker deployment, you need **three `.env` files**:
+
+#### Root `.env` file (for Docker Compose build args)
+Create a `.env` file in the project root:
 
 ```bash
-# .env
+# Root .env file (for Docker Compose)
+# This file is used by docker-compose.yml for build arguments
 
 # Jira Configuration
 JIRA_BASE_URL=https://your-domain.atlassian.net
@@ -103,10 +141,37 @@ JIRA_JQL_QUERY=project = VD ORDER BY created ASC
 # OpenAI Configuration
 OPENAI_API_KEY=sk-proj-...
 
-# Frontend Configuration (for Docker build)
-# Note: These are passed as build args to the frontend container
+# Frontend Configuration (for Docker build args)
 VITE_API_BASE_URL=http://localhost:8080
 ```
+
+#### Backend `.env` file
+Create `backend/.env` with the same backend variables (used for local dev and Docker runtime):
+
+```bash
+# Backend .env file (backend/.env)
+OPENAI_API_KEY=sk-proj-...
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
+JIRA_API_TOKEN=your_jira_api_token
+JIRA_PROJECT_KEY=VD
+JIRA_JQL_QUERY=project = VD ORDER BY created ASC
+```
+
+#### Frontend `.env` file
+Create `frontend/.env` with frontend variables (used for local dev):
+
+```bash
+# Frontend .env file (frontend/.env)
+VITE_API_BASE_URL=http://localhost:8080
+VITE_OPENAI_API_KEY=sk-proj-...
+VITE_JIRA_DOMAIN=https://your-domain.atlassian.net
+VITE_JIRA_EMAIL=your-email@example.com
+VITE_JIRA_API_TOKEN=your_jira_api_token
+VITE_JIRA_JQL_QUERY=project = VD ORDER BY created ASC
+```
+
+**Note:** For Docker, the root `.env` is used for build arguments, while `backend/.env` is used for runtime environment variables.
 
 ### 2. Run with Docker Compose
 Start the application in detached mode:

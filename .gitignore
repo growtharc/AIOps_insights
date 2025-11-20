@@ -4,29 +4,81 @@ package-lock.json
 
 # Frontend specific
 frontend/node_modules/
-frontend/package-lock.json
 frontend/dist/
 frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
 # Backend specific (Python)
-backend/**/__pycache__/
-backend/**/*.pyc
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+backend/.venv/
 backend/venv/
-backend/.pytest_cache/
+backend/env/
+backend/ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+backend/.env
+backend/.env.local
+backend/.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log
+*.log.*
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md

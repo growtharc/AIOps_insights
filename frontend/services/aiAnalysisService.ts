@@ -10,10 +10,19 @@ import { CsvData } from '../types';
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 if (!API_KEY) {
-  throw new Error("VITE_OPENAI_API_KEY environment variable not set.");
+  // In dev, log a warning instead of throwing, to allow the app to load and show a UI error
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.warn("VITE_OPENAI_API_KEY environment variable not set. The app will not function until this is set.");
+    console.warn("Please create a .env file in the frontend/ directory with VITE_OPENAI_API_KEY=your_key");
+    console.warn("Then restart the dev server with 'npm run dev'");
+  } else {
+    throw new Error("VITE_OPENAI_API_KEY environment variable not set.");
+  }
 }
 
-const openai = new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
+// Only create the OpenAI client if API_KEY is available
+const openai = API_KEY ? new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true }) : null;
 
 export interface AnalysisStep {
   step: number;
@@ -125,6 +134,10 @@ const planAnalysisSteps = async (
   dataContext: string,
   historyContext?: string
 ): Promise<{ steps: string[]; finalVisualization: string }> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
@@ -176,6 +189,10 @@ const generateStepQuery = async (
   previousSteps: AnalysisStep[],
   historyContext?: string
 ): Promise<string> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   const previousContext = previousSteps.length > 0
     ? `\n\nPrevious analysis steps:\n${previousSteps.map(s =>
       `Step ${s.step}: ${s.action}\nQuery: ${s.sqlQuery}\nInsight: ${s.insight}`
@@ -215,6 +232,10 @@ const generateInsight = async (
   stepDescription: string,
   queryResult: any[]
 ): Promise<string> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   const resultSummary = queryResult.length > 0
     ? JSON.stringify(queryResult.slice(0, 10), null, 2)
     : 'No results';
@@ -245,6 +266,10 @@ const synthesizeFinalSummary = async (
   question: string,
   steps: AnalysisStep[]
 ): Promise<{ summary: string; keyInsights: string[]; recommendation: string }> => {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+  }
+
   const stepsContext = steps.map(s =>
     `Step ${s.step}: ${s.action}\nInsight: ${s.insight}\nResult count: ${s.result?.length || 0} rows`
   ).join('\n\n');
@@ -528,6 +553,10 @@ ${sampleData.slice(0, 10).map((row: any, idx: number) => {
 `;
 
     // Ask AI to generate insights from ACCURATE data
+    if (!openai) {
+      throw new Error('OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file and restart the dev server.');
+    }
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [

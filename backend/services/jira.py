@@ -5,10 +5,12 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from datetime import datetime
 
-# Load from .env.local (if present) for local development, else fallback to system env
-# Load from .env.local (if present) for local development, else fallback to system env
+# Load from .env (for local development) or .env.local (if present), else fallback to system env
 # In Docker, these are injected by docker-compose
-load_dotenv(dotenv_path=os.path.join(os.getcwd(), ".env.local"), override=True)
+# load_dotenv() by default looks for .env in the current directory
+# We also try .env.local for local overrides
+load_dotenv()  # Loads .env from current directory
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), ".env.local"), override=True)  # Override with .env.local if it exists
 
 JIRA_DOMAIN = os.getenv("JIRA_BASE_URL")
 if JIRA_DOMAIN and JIRA_DOMAIN.startswith('"') and JIRA_DOMAIN.endswith('"'):
