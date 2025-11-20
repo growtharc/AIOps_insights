@@ -8,7 +8,15 @@ interface ChartRendererProps {
   showDownload?: boolean;
 }
 
-const COLORS = ['#0ea5e9', '#6366f1', '#ec4899', '#f97316', '#10b981', '#facc15'];
+const COLORS = [
+  "#6366F1", // brand primary
+  "#3B82F6",
+  "#34D399",
+  "#FBBF24",
+  "#EC4899",
+  "#8B5CF6"
+];
+
 
 // Download icon component
 const DownloadIcon = ({ className }: { className?: string }) => (

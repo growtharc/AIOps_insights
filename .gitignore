@@ -9,8 +9,8 @@ frontend/dist/
 frontend/build/
 
 # Backend specific (Python)
-backend/__pycache__/
-backend/*.pyc
+backend/**/__pycache__/
+backend/**/*.pyc
 backend/venv/
 backend/.pytest_cache/
 

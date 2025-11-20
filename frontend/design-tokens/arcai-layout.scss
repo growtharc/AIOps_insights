@@ -1,0 +1,106 @@
+@use "./arcai-theme.scss";
+
+/* ---------------------------------------------------------
+   App Layout
+--------------------------------------------------------- */
+.arcai-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-subtle);
+}
+
+/* Main layout */
+.arcai-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 40px;
+}
+
+/* Refresh Row */
+.refresh-row {
+  position: sticky;
+  top: 20px;                 /* stays visible when scrolling */
+  display: flex;
+  justify-content: flex-end;
+  z-index: 20;
+
+  /* shift it slightly outside the 960px wrapper */
+  max-width: 960px;
+  margin: 0 auto;
+  transform: translateX(40px); /* move RIGHT outside container */
+}
+
+.arc-btn-refresh {
+  background: var(--brand-primary);
+  color: white;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-soft);
+
+  &:hover {
+    background: var(--brand-secondary);
+  }
+
+  &.loading {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+/* Message stack */
+.messages-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------
+   Footer Input Bar (ArcAI)
+--------------------------------------------------------- */
+// .arcai-footer {
+//   padding: 20px 40px;
+//   border-top: 1px solid var(--border-light);
+//   background: var(--bg-surface);
+// }
+
+// .arc-input-bar {
+//   max-width: 860px;
+//   margin: 0 auto;
+//   background: var(--bg-surface);
+//   border: 1px solid var(--border-light);
+//   border-radius: var(--radius-lg);
+//   padding: 12px 16px;
+//   display: flex;
+//   align-items: center;
+//   box-shadow: var(--shadow-soft);
+
+//   input {
+//     border: none;
+//     flex: 1;
+//     font-size: 15px;
+//     color: var(--text-dark);
+//     outline: none;
+
+//     &::placeholder {
+//       color: var(--text-light);
+//     }
+//   }
+
+//   button {
+//     background: var(--brand-primary);
+//     border: none;
+//     color: white;
+//     border-radius: var(--radius-sm);
+//     padding: 10px;
+//     cursor: pointer;
+//     transition: var(--transition-fast);
+
+//     &:hover {
+//       background: var(--brand-secondary);
+//     }
+//   }
+// }

@@ -1,0 +1,56 @@
+/* ---------------------------------------------------------
+   ArcAI THEME TOKENS (globals)
+--------------------------------------------------------- */
+
+:root {
+  --brand-primary: #6366f1;
+  --brand-secondary: #8b5cf6;
+  --brand-accent: #3b82f6;
+
+  --bg-surface: #ffffff;
+  --bg-subtle: #f7f9ff;
+  --bg-muted: #eef1fb;
+
+  --border-light: #e3e8f7;
+  --border-medium: #cdd6f4;
+
+  --text-dark: #101827;
+  --text-medium: #4b5567;
+  --text-light: #9ca3af;
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+
+/* ---------------------------------------------------------
+   MIXINS (Safe with @use)
+--------------------------------------------------------- */
+
+@mixin arc-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
+  padding: 20px;
+}
+
+@mixin arc-subtle {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+@mixin arc-icon-bubble {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
