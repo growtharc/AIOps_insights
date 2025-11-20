@@ -1,0 +1,67 @@
+.gradient-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  gap: 10px;
+
+  &.small {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  &.medium {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+
+  &.large {
+    font-size: 1.2rem;
+    padding: 0.8rem 1.6rem;
+  }
+
+  .icon {
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  &.primary {
+    background: var(--color-action-default);
+    color: var(--color-neutral-100);
+
+    &:hover:not(:disabled) {
+      background: var(--color-action-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &.secondary {
+    background: #ffffff;
+    color: #1f2937; 
+    border: 1px solid #d1d5db;
+
+    &:hover:not(:disabled) {
+      background: #f3f4f6; 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}

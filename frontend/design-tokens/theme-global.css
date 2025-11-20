@@ -1,0 +1,107 @@
+/* stylelint-disable rule-empty-line-before */
+/* stylelint-disable custom-property-empty-line-before */
+/* stylelint-disable comment-whitespace-inside */
+/* stylelint-disable color-hex-length */
+/* stylelint-disable color-function-notation */
+/* stylelint-disable alpha-value-notation */
+
+/**
+ * Global CSS variables - Do not edit
+ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Open+Sans:ital,wght@1,500&family=Poppins:wght@600&display=swap');
+
+:root {
+  /* Button Gradients */
+  --color-action-default: linear-gradient(90deg, #6366F1 0%, #9333EA 100%);
+  --color-action-hover: linear-gradient(90deg, #4F46E5 0%, #7A00D4 100%);
+  --color-action-disabled: linear-gradient(to right, #CBD5E1, #E5E7EB);
+
+  /* Brand Colors */
+  --color-brand-100: #EEF2FF;
+  --color-brand-200: #E0E7FF;
+  --color-brand-300: #C7D2FE;
+  --color-brand-400: #A5B4FC;
+  --color-brand-450: #7F80F8;
+  --color-brand-500: #6366F1;
+  --color-brand-600: #4F46E5;
+  --color-brand-650: #4338CA;
+
+  /* Brand Contrast Colors */
+  --color-brand-contrast-100: #F3E8FF;
+  --color-brand-contrast-300: #C299F7;
+  --color-brand-contrast-400: #A666ED;
+  --color-brand-contrast-450: #9950E8;
+  --color-brand-contrast-500: #9333EA;
+  --color-brand-contrast-600: #7A00D4;
+  --color-brand-contrast-650: #5E00B8;
+
+  --color-brand-light: #F9FAFB;
+  --color-brand-light-hover: #F3F4F6;
+
+  --color-brand-gradient: linear-gradient(135deg, #6366F1 0%, #9333EA 100%);
+
+  /* Contrast Colors */
+  --color-contrast-brand: #1E3A8A;
+  --color-contrast-white: #FFFFFF;
+  --color-contrast-black: #000000;
+  --color-contrast-focused: #4338CA;
+
+  /* Feedback Colors */
+  --color-feedback-danger-100: #FFE5E0;
+  --color-feedback-danger-200: #FFBEB3;
+  --color-feedback-danger-300: #FA7E5A;
+  --color-feedback-danger-400: #E94E2D;
+  --color-feedback-danger-500: #C13F24;
+  --color-feedback-danger-600: #A2341F;
+
+  --color-feedback-positive-100: #DCF8E6;
+  --color-feedback-positive-200: #A6EFC2;
+  --color-feedback-positive-300: #60D69E;
+  --color-feedback-positive-400: #3BB85D;
+  --color-feedback-positive-500: #2E9250;
+  --color-feedback-positive-600: #236D40;
+
+  --color-feedback-warning-100: #FFF4E0;
+  --color-feedback-warning-200: #FFDFAB;
+  --color-feedback-warning-300: #FFBD60;
+  --color-feedback-warning-400: #EF9400;
+  --color-feedback-warning-500: #C47600;
+  --color-feedback-warning-600: #9C5D00;
+
+  --color-feedback-info-100: #CFE0FF;
+  --color-feedback-info-200: #99C5FF;
+  --color-feedback-info-300: #3389FF;
+  --color-feedback-info-400: #006DE7;
+  --color-feedback-info-500: #0059B2;
+  --color-feedback-info-600: #004687;
+
+  /* Neutral Colors */
+  --color-neutral-50: #F9FAFB;
+  --color-neutral-75: #F3F4F6;
+  --color-neutral-100: #FFFFFF;
+  --color-neutral-200: #E5E7EB;
+  --color-neutral-300: #D1D5DB;
+  --color-neutral-400: #9CA3AF;
+  --color-neutral-500: #6B7280;
+  --color-neutral-600: #111827;
+  --color-neutral-background: #F9FAFB;
+  --color-neutral-table-row-banding: #F3F4F6;
+
+  /* Other Colors */
+  --color-white: #FFFFFF;
+  --color-opacity-default: rgb(255 255 255 / 0.32);
+  --color-opacity-hover: rgb(252 236 197 / 0.32);
+  --color-opacity-disabled: rgb(191 191 191 / 0.32);
+  --color-opacity-error: rgb(255 234 234 / 0.32);
+  --color-opacity-backdrop: rgb(0 0 0 / 0.5);
+
+  --color-box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+
+  /* Fonts */
+  --font-family-base: 'IBM Plex Sans', sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
