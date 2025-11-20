@@ -10,7 +10,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 
-from backend.state import session_store
+from state import session_store
 
 
 router = APIRouter(prefix="/session", tags=["session"])

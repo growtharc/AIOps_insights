@@ -45,7 +45,7 @@ An intelligent data analysis platform that combines SQL execution with RAG (Retr
 ### 1. Create Environment File
 Create a `.env` file in the project root and add your OpenAI API key:
 ```bash
-echo "VITE_OPENAI_API_KEY=your_openai_api_key_here" > .env.local
+echo "VITE_OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
 **Note:** The `.env` file is required for the app to access the OpenAI API and Jira. Without it, features that use OpenAI or Jira will not work.
 
@@ -80,73 +80,81 @@ The frontend will run at [http://localhost:5173](http://localhost:5173) (or the 
 - Ask questions in natural language
 - View insights and visualizations
 
-## 🐳 Deploy with Docker to a VM
+## 🐳 Deploy with Docker (Recommended)
 
-This section outlines how to deploy the application using Docker to a Virtual Machine (VM).
+The easiest way to run the application is using Docker Compose, which orchestrates both the frontend and backend services.
 
 ### Prerequisites
--   A VM with Docker installed.
--   SSH access to your VM.
+- Docker and Docker Compose installed on your machine.
 
-### 1. Build the Docker Image
-Navigate to the project root directory on your local machine (where the `Dockerfile` is located) and build the Docker image:
-
-```bash
-docker build -t insights-copilot .
-```
-This command builds the Docker image and tags it as `insights-copilot`.
-
-### 2. Transfer the Docker Image to your VM (Optional, if not using a registry)
-If you are not using a Docker registry (like Docker Hub), you can save the image to a tar file and copy it to your VM:
+### 1. Configure Environment Variables
+Create a `.env` file in the project root (copy from `.env.example` if available, or use the template below):
 
 ```bash
-docker save -o insights-copilot.tar insights-copilot
-scp insights-copilot.tar user@your_vm_ip:/path/to/vm/directory
-```
-Then, on your VM, load the image:
-```bash
-docker load -i insights-copilot.tar
+# .env
+
+# Jira Configuration
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
+JIRA_API_TOKEN=your_jira_api_token
+JIRA_PROJECT_KEY=VD
+JIRA_JQL_QUERY=project = VD ORDER BY created ASC
+
+# OpenAI Configuration
+OPENAI_API_KEY=sk-proj-...
+
+# Frontend Configuration (for Docker build)
+# Note: These are passed as build args to the frontend container
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
-Alternatively, push to a Docker registry (recommended for production):
+### 2. Run with Docker Compose
+Start the application in detached mode:
+
 ```bash
-docker tag insights-copilot your_registry/insights-copilot:latest
-docker push your_registry/insights-copilot:latest
-```
-Then, on your VM, pull the image:
-```bash
-docker pull your_registry/insights-copilot:latest
+docker-compose up --build -d
 ```
 
-### 3. Run the Docker Container on your VM
-On your VM, run the Docker container. Ensure you map the necessary ports and pass your environment variables.
+This command will:
+1.  Build the **Backend** container (FastAPI)
+2.  Build the **Frontend** container (Vite + Nginx)
+3.  Start both services and connect them via a Docker network
 
-First, create an `.env` file on your VM with your API keys and Jira credentials:
+### 3. Access the Application
+-   **Frontend**: [http://localhost:3000](http://localhost:3000)
+-   **Backend Health Check**: [http://localhost:8080/healthcheck](http://localhost:8080/healthcheck)
+
+### Troubleshooting
+-   **White Screen / API Errors**: Ensure `VITE_OPENAI_API_KEY` and other `VITE_` variables are correctly passed during the build. If you change environment variables, you must rebuild the containers:
+    ```bash
+    docker-compose up --build --force-recreate -d
+    ```
+-   **Jira Connection Errors**: Verify your `JIRA_BASE_URL` and `JIRA_API_TOKEN`. Ensure the `JIRA_JQL_QUERY` is valid.
+
+---
+
+## 🏃 Run Locally (Manual Setup)
+
+If you prefer to run without Docker:
+
+### 1. Backend Setup
 ```bash
-# /path/to/vm/directory/.env
-VITE_OPENAI_API_KEY=your_openai_api_key_here
-VITE_JIRA_DOMAIN=your_jira_domain_here
-VITE_JIRA_EMAIL=your_jira_email_here
-VITE_JIRA_API_TOKEN=your_jira_api_token_here
-VITE_JIRA_JQL_QUERY=your_jira_jql_query_here
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Configure your .env file
+uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
-Then, run the container, mounting the `.env` file and mapping ports:
+### 2. Frontend Setup
 ```bash
-docker run -d \
-  --name insights-copilot-app \
-  -p 80:8080 \
-  --env-file /path/to/vm/directory/.env \
-  insights-copilot
+cd frontend
+npm install
+cp .env.example .env  # Configure your .env file
+npm run dev
 ```
--   `-d`: Runs the container in detached mode (in the background).
--   `--name insights-copilot-app`: Assigns a name to your container.
--   `-p 80:8080`: Maps port 80 on your VM to port 8080 inside the container. You can change `80` to any available port on your VM.
--   `--env-file /path/to/vm/directory/.env`: Provides environment variables from the `.env` file on your VM.
--   `insights-copilot`: The name of the Docker image to use.
-
-### 4. Access the Application
-Once the container is running, you can access the application through your VM's IP address or domain name on the mapped port (e.g., `http://your_vm_ip`).
+Access at [http://localhost:5173](http://localhost:5173).
 
 ## 📖 How It Works
 
@@ -204,27 +212,22 @@ Question Analysis (AI determines mode)
 
 ```
 ├── backend/                     # FastAPI backend (Python)
-│   ├── .venv/                   # Python virtual environment
 │   ├── api/                     # API routers (Jira, session, query)
 │   ├── services/                # Business logic (Jira, LLM, etc.)
-│   ├── __init__.py
 │   ├── app.py                   # FastAPI app factory
 │   ├── main.py                  # Entrypoint for Uvicorn
 │   ├── models.py                # Data models
 │   ├── requirements.txt         # Python dependencies
-│   └── state.py
+│   ├── Dockerfile               # Backend Dockerfile
+│   └── .env.example             # Backend env template
 ├── frontend/                    # React + Vite frontend (TypeScript)
-│   ├── components/              # UI components
-│   ├── services/                # API and AI services
-│   ├── utils/                   # Data formatting and helpers
-│   ├── App.tsx                  # Main app component
-│   ├── index.html
-│   ├── index.tsx
-│   ├── package.json
-│   └── ...                      # Other frontend files
-├── .env                         # Environment variables (not committed)
-├── Dockerfile                   # Production Dockerfile for backend
-├── .dockerignore                # Docker ignore file
+│   ├── src/                     # Source code
+│   ├── Dockerfile               # Frontend Dockerfile
+│   ├── nginx.conf               # Nginx configuration
+│   ├── .env.example             # Frontend env template
+│   └── package.json
+├── docker-compose.yml           # Docker Compose orchestration
+├── .env                         # Root environment variables (gitignored)
 └── README.md
 ```
 

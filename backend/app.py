@@ -4,9 +4,9 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.session.router import router as session_router
-from backend.api.query.router import router as query_router
-from backend.api.jira.router import router as jira_router
+from api.session.router import router as session_router
+from api.query.router import router as query_router
+from api.jira.router import router as jira_router
 
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ from typing import AsyncGenerator, Sequence
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph
 
-from ...models import QueryOptions
+from models import QueryOptions
 from .nodes import CallModelNode, CallToolNode, ShouldCallToolCondition
 from .toolkit import QueryGraphState, SQLDatabaseToolkit
 from .utils import SQLDatabaseFromEngine

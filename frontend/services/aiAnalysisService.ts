@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 import { createSemanticContext, createDataContext } from '../utils/ragUtils';
 import { CsvData } from '../types';
 
-const API_KEY = (import.meta as any).env?.VITE_OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 if (!API_KEY) {
   throw new Error("VITE_OPENAI_API_KEY environment variable not set.");
@@ -78,7 +78,7 @@ export const requiresMultiStepAnalysis = async (
   dataContext: string
 ): Promise<boolean> => {
   const lowerQ = question.toLowerCase();
-  
+
   // ALWAYS use simple SQL mode for these clear analytical questions
   const simpleSqlIndicators = [
     'which category', 'which', 'compare', 'comparison',
@@ -93,24 +93,24 @@ export const requiresMultiStepAnalysis = async (
     'daily', 'day by day', 'each day', 'per day',
     'over time', 'timeline', 'time series', 'temporal'
   ];
-  
+
   // If it's a direct analytical question, use simple SQL mode
   if (simpleSqlIndicators.some(indicator => lowerQ.includes(indicator))) {
     console.log('⚡ Direct analytical question detected - using simple SQL mode');
     return false; // Use simple SQL mode
   }
-  
+
   // Only questions asking for comprehensive summaries need multi-step
   const multiStepIndicators = [
     'summarize', 'summarise', 'summary',
     'overview', 'describe', 'explain'
   ];
-  
+
   if (multiStepIndicators.some(indicator => lowerQ.includes(indicator))) {
     console.log('🔍 Summary question detected - using comprehensive mode');
     return true; // Use comprehensive mode
   }
-  
+
   // Default to simple SQL for everything else
   console.log('⚡ Defaulting to simple SQL mode');
   return false;
@@ -177,9 +177,9 @@ const generateStepQuery = async (
   historyContext?: string
 ): Promise<string> => {
   const previousContext = previousSteps.length > 0
-    ? `\n\nPrevious analysis steps:\n${previousSteps.map(s => 
-        `Step ${s.step}: ${s.action}\nQuery: ${s.sqlQuery}\nInsight: ${s.insight}`
-      ).join('\n\n')}`
+    ? `\n\nPrevious analysis steps:\n${previousSteps.map(s =>
+      `Step ${s.step}: ${s.action}\nQuery: ${s.sqlQuery}\nInsight: ${s.insight}`
+    ).join('\n\n')}`
     : '';
 
   const response = await openai.chat.completions.create({
@@ -245,7 +245,7 @@ const synthesizeFinalSummary = async (
   question: string,
   steps: AnalysisStep[]
 ): Promise<{ summary: string; keyInsights: string[]; recommendation: string }> => {
-  const stepsContext = steps.map(s => 
+  const stepsContext = steps.map(s =>
     `Step ${s.step}: ${s.action}\nInsight: ${s.insight}\nResult count: ${s.result?.length || 0} rows`
   ).join('\n\n');
 
@@ -296,7 +296,7 @@ Return JSON:
  */
 const isSummaryOnlyQuestion = (question: string): boolean => {
   const lowerQ = question.toLowerCase();
-  
+
   // Questions that REQUIRE SQL + Charts (not summary-only)
   const sqlModeIndicators = [
     'which category', 'which', 'compare', 'comparison', 'vs', 'versus',
@@ -307,12 +307,12 @@ const isSummaryOnlyQuestion = (question: string): boolean => {
     'average', 'total', 'count by', 'group by',
     'breakdown', 'distribution', 'how many'
   ];
-  
+
   // If question has SQL indicators, use SQL mode
   if (sqlModeIndicators.some(indicator => lowerQ.includes(indicator))) {
     return false; // Use SQL mode with charts
   }
-  
+
   // Pure summary keywords (only these should use summary-only mode)
   const pureSummaryKeywords = [
     'summarize', 'summarise', 'summary',
@@ -320,7 +320,7 @@ const isSummaryOnlyQuestion = (question: string): boolean => {
     'tell me about the issues', 'describe the issues',
     'explain the issues', 'what are the issues'
   ];
-  
+
   // Only use summary-only mode if it's explicitly asking for a summary
   return pureSummaryKeywords.some(kw => lowerQ.includes(kw));
 };
@@ -343,7 +343,7 @@ const performHybridSummaryAnalysis = async (
       sqlQueries: []
     };
   }
-  
+
   const columns = Object.keys(data[0] || {});
   if (columns.length === 0) {
     console.error('❌ No columns found in data');
@@ -354,29 +354,29 @@ const performHybridSummaryAnalysis = async (
       sqlQueries: []
     };
   }
-  
+
   // Detect category/filter from question - handle multi-word categories
-  const categoryMatch = question.match(/in (?:the )?['"]?([^'"?]+?)['"]?\s*category/i) || 
-                        question.match(/category\s*-\s*['"]?([^'"?]+?)['"]?\s*\??\s*$/i) ||
-                        question.match(/issues?\s+(?:in|for)\s+['"]?([^'"?]+?)['"]?\s*\??/i);
+  const categoryMatch = question.match(/in (?:the )?['"]?([^'"?]+?)['"]?\s*category/i) ||
+    question.match(/category\s*-\s*['"]?([^'"?]+?)['"]?\s*\??\s*$/i) ||
+    question.match(/issues?\s+(?:in|for)\s+['"]?([^'"?]+?)['"]?\s*\??/i);
   const targetCategory = categoryMatch ? categoryMatch[1].trim() : null;
-  
+
   // Find likely category column
-  const categoryColumn = columns.find(col => 
-    col.toLowerCase().includes('category') || 
+  const categoryColumn = columns.find(col =>
+    col.toLowerCase().includes('category') ||
     col.toLowerCase().includes('type') ||
     col.toLowerCase() === 'category'
   );
-  
+
   // Find text/summary columns
-  const textColumns = columns.filter(col => 
-    col.toLowerCase().includes('summary') || 
+  const textColumns = columns.filter(col =>
+    col.toLowerCase().includes('summary') ||
     col.toLowerCase().includes('description') ||
     col.toLowerCase().includes('issue') ||
     col.toLowerCase().includes('title') ||
     col.toLowerCase().includes('subject')
   );
-  
+
   // Build WHERE clause for filtering - escape SQL special characters
   let whereClause = '';
   if (targetCategory && categoryColumn) {
@@ -386,16 +386,16 @@ const performHybridSummaryAnalysis = async (
       : categoryColumn;
     whereClause = `WHERE LOWER(${safeColumnName}) LIKE '%${escapedCategory}%'`;
   }
-  
+
   // Execute SQL queries to get ACCURATE statistics
   const sqlQueries: string[] = [];
   const queryResults: Record<string, any> = {};
-  
+
   try {
     // Debug logging
     console.log('🔍 Starting hybrid analysis...');
     console.log('Available columns:', columns.join(', '));
-    
+
     if (targetCategory) {
       console.log(`📌 Detected category: "${targetCategory}" from question`);
       console.log(`📊 Using column: "${categoryColumn}" for filtering`);
@@ -403,12 +403,12 @@ const performHybridSummaryAnalysis = async (
     } else {
       console.log('📊 No category filter - analyzing all data');
     }
-    
+
     // Query 1: Count total and filtered records
     const countQuery = `SELECT COUNT(*) as total_count FROM data ${whereClause}`;
     sqlQueries.push(countQuery);
     console.log('Executing count query:', countQuery);
-    
+
     try {
       const countResult = await executeQuery(countQuery);
       queryResults.totalCount = countResult[0]?.total_count || 0;
@@ -417,20 +417,20 @@ const performHybridSummaryAnalysis = async (
       console.error('❌ Count query failed:', countError.message);
       throw new Error(`Count query failed: ${countError.message}`);
     }
-    
+
     // Query 2: Get statistics for numeric columns (TAT, priority, etc.)
     const numericColumns = columns.filter(col => {
       const sample = data.find(row => row[col] != null);
       return sample && typeof sample[col] === 'number';
     });
-    
+
     if (numericColumns.length > 0) {
       console.log('📊 Numeric columns found:', numericColumns.join(', '));
       for (const col of numericColumns.slice(0, 3)) { // Limit to top 3 numeric columns
         try {
           const safeCol = col.includes(' ') || /[^a-zA-Z0-9_]/.test(col) ? `\`${col}\`` : col;
           const colAlias = col.replace(/[^a-zA-Z0-9_]/g, '_'); // Safe alias name
-          
+
           const statsQuery = `SELECT 
             AVG(${safeCol}) as avg_${colAlias},
             MIN(${safeCol}) as min_${colAlias},
@@ -449,7 +449,7 @@ const performHybridSummaryAnalysis = async (
         }
       }
     }
-    
+
     // Query 3: Get sample data
     let sampleData: any[] = [];
     try {
@@ -461,7 +461,7 @@ const performHybridSummaryAnalysis = async (
       console.warn('⚠️ Sample query failed:', sampleError.message);
       sampleData = data.slice(0, 20); // Fallback to raw data
     }
-    
+
     // Query 4: If there's a category column, get breakdown
     if (categoryColumn && !whereClause) {
       // Only get breakdown if we're analyzing all categories
@@ -478,7 +478,7 @@ const performHybridSummaryAnalysis = async (
         console.warn('⚠️ Category breakdown query failed:', catError.message);
       }
     }
-    
+
     // Query 5: Get unique values for text columns (most common issues)
     if (textColumns.length > 0) {
       console.log('📝 Text columns found:', textColumns[0]);
@@ -496,7 +496,7 @@ const performHybridSummaryAnalysis = async (
         console.warn('⚠️ Common issues query failed:', textError.message);
       }
     }
-    
+
     // Create context with ACCURATE numbers from SQL
     const analysisContext = `
 Question: "${question}"
@@ -506,12 +506,12 @@ ACCURATE SQL Query Results:
 ${targetCategory ? `- Category filter: "${targetCategory}"` : ''}
 
 ${Object.keys(queryResults).filter(k => k.startsWith('stats_')).map(key => {
-  const col = key.replace('stats_', '');
-  const colAlias = col.replace(/[^a-zA-Z0-9_]/g, '_');
-  const stats = queryResults[key];
-  const avgVal = stats[`avg_${colAlias}`];
-  return `- ${col}: avg=${typeof avgVal === 'number' ? avgVal.toFixed(3) : avgVal}, min=${stats[`min_${colAlias}`]}, max=${stats[`max_${colAlias}`]}`;
-}).join('\n')}
+      const col = key.replace('stats_', '');
+      const colAlias = col.replace(/[^a-zA-Z0-9_]/g, '_');
+      const stats = queryResults[key];
+      const avgVal = stats[`avg_${colAlias}`];
+      return `- ${col}: avg=${typeof avgVal === 'number' ? avgVal.toFixed(3) : avgVal}, min=${stats[`min_${colAlias}`]}, max=${stats[`max_${colAlias}`]}`;
+    }).join('\n')}
 
 ${queryResults.categoryBreakdown ? `\nCategory Breakdown:\n${queryResults.categoryBreakdown.map((row: any) => `- ${row[categoryColumn]}: ${row.count} records`).join('\n')}` : ''}
 
@@ -519,12 +519,12 @@ ${queryResults.commonIssues ? `\nMost Common Issues:\n${queryResults.commonIssue
 
 Sample Data (first 10 rows):
 ${sampleData.slice(0, 10).map((row: any, idx: number) => {
-  const rowStr = Object.entries(row)
-    .slice(0, 5) // Show first 5 columns
-    .map(([key, val]) => `${key}="${val}"`)
-    .join(', ');
-  return `${idx + 1}. ${rowStr}`;
-}).join('\n')}
+      const rowStr = Object.entries(row)
+        .slice(0, 5) // Show first 5 columns
+        .map(([key, val]) => `${key}="${val}"`)
+        .join(', ');
+      return `${idx + 1}. ${rowStr}`;
+    }).join('\n')}
 `;
 
     // Ask AI to generate insights from ACCURATE data
@@ -570,12 +570,12 @@ Return JSON format:
       recommendation: analysis.recommendation || 'Continue monitoring data quality.',
       sqlQueries
     };
-    
+
   } catch (error: any) {
     console.error('❌ Error in hybrid analysis:', error);
     console.error('Error details:', error.message);
     console.error('SQL queries attempted:', sqlQueries);
-    
+
     // Provide helpful error message
     const errorMsg = error.message || 'Unknown error';
     return {
@@ -601,14 +601,14 @@ export const performComprehensiveAnalysis = async (
   historyContext?: string
 ): Promise<ComprehensiveAnalysis> => {
   const columns = Object.keys(data[0] || {});
-  
+
   // Check if this is a summary-only question
   if (isSummaryOnlyQuestion(question)) {
     console.log('📊 Using hybrid SQL+AI analysis (summary mode with accurate stats)');
-    
+
     // Perform hybrid analysis: SQL for accuracy + AI for insights
     const { summary, keyInsights, recommendation, sqlQueries } = await performHybridSummaryAnalysis(question, data, executeQuery);
-    
+
     return {
       question,
       steps: [], // Don't show steps for summary mode
@@ -619,23 +619,23 @@ export const performComprehensiveAnalysis = async (
       // SQL queries are used but not shown in UI for cleaner summary presentation
     };
   }
-  
+
   // Otherwise, use the SQL-based multi-step approach
   console.log('🔍 Using SQL-based multi-step analysis');
   const dataContext = createSemanticContext(data, 50);
-  
+
   // Plan the analysis
   const plan = await planAnalysisSteps(question, columns, dataContext, historyContext);
-  
+
   // Execute each step
   const steps: AnalysisStep[] = [];
-  
+
   for (let i = 0; i < plan.steps.length; i++) {
     const stepDescription = plan.steps[i];
-    
+
     // Generate query for this step
     const sqlQuery = await generateStepQuery(stepDescription, columns, steps, historyContext);
-    
+
     // Execute query
     let result: any[] = [];
     try {
@@ -644,10 +644,10 @@ export const performComprehensiveAnalysis = async (
       console.error(`Error executing step ${i + 1}:`, error);
       result = [];
     }
-    
+
     // Generate insight
     const insight = await generateInsight(stepDescription, result);
-    
+
     steps.push({
       step: i + 1,
       action: stepDescription,
@@ -656,13 +656,13 @@ export const performComprehensiveAnalysis = async (
       insight
     });
   }
-  
+
   // Synthesize final summary
   const { summary, keyInsights, recommendation } = await synthesizeFinalSummary(question, steps);
-  
+
   // Determine best data to visualize (usually the most informative step)
   const visualizationStep = steps.find(s => s.result && s.result.length > 0 && s.result.length < 100) || steps[0];
-  
+
   return {
     question,
     steps,

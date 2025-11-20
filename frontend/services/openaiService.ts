@@ -2,12 +2,7 @@ import OpenAI from 'openai';
 import { AssistantResponse, CsvData } from '../types';
 import { createDataContext, DataContext } from '../utils/ragUtils';
 
-declare const importMetaEnv: Record<string, string | undefined>;
-const importMeta = typeof import.meta !== "undefined" ? import.meta : ({} as any);
-let API_KEY =
-  (importMeta.env?.VITE_OPENAI_API_KEY ||
-    (typeof importMetaEnv !== "undefined" ? importMetaEnv.VITE_OPENAI_API_KEY : undefined) ||
-    (window as any)?.ENV?.VITE_OPENAI_API_KEY);
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 if (!API_KEY) {
   // In dev, log a warning instead of throwing, to allow the app to load and show a UI error
@@ -134,20 +129,20 @@ export const createChatSession = (data: CsvData): ChatSession => {
 
   let contextString = `\n\n## Column Overview\n${dataContext.columnInfo}\n`;
   if (dataContext.statistics) {
-      contextString += `\n## Numeric Column Statistics\n${dataContext.statistics}\n`;
+    contextString += `\n## Numeric Column Statistics\n${dataContext.statistics}\n`;
   }
   if (Object.keys(dataContext.uniqueValues).length > 0) {
-      contextString += `\n## Categorical Column Values\n`;
-      Object.entries(dataContext.uniqueValues).forEach(([col, values]) => {
-          contextString += `  - ${col}: ${values.slice(0, 20).join(', ')}${values.length > 20 ? '...' : ''}\n`;
-      });
+    contextString += `\n## Categorical Column Values\n`;
+    Object.entries(dataContext.uniqueValues).forEach(([col, values]) => {
+      contextString += `  - ${col}: ${values.slice(0, 20).join(', ')}${values.length > 20 ? '...' : ''}\n`;
+    });
   }
 
   const fullSystemInstruction = `${baseSystemInstruction}\n\nAvailable columns: [${columns.join(', ')}]\n${contextString}`;
 
   return {
-      history: [],
-      systemInstruction: fullSystemInstruction,
+    history: [],
+    systemInstruction: fullSystemInstruction,
   };
 };
 
@@ -207,13 +202,13 @@ export const getHistorySummary = (session: ChatSession, maxItems: number = 5): s
 
 // Retry SQL generation with error feedback
 export const retrySQLWithError = async (
-  session: ChatSession, 
-  prompt: string, 
+  session: ChatSession,
+  prompt: string,
   errorMessage: string,
   failedSQL: string
 ): Promise<Omit<AssistantResponse, 'chartData'>> => {
   const retryPrompt = `Previous attempt failed with this error: "${errorMessage}"\n\nFailed SQL: ${failedSQL}\n\nPlease fix the SQL query and try again.\n\nOriginal question: ${prompt}`;
-  
+
   const messages = [
     { role: 'system' as const, content: session.systemInstruction },
     ...session.history,
@@ -236,7 +231,7 @@ export const retrySQLWithError = async (
 
   const content = completion.choices?.[0]?.message?.content ?? '';
   const parsedResponse = JSON.parse(content);
-  
+
   // Don't update history with retry - wait for success
   return parsedResponse as Omit<AssistantResponse, 'chartData'>;
 };

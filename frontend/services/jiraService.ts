@@ -1,9 +1,10 @@
 // services/jiraService.ts
 import { CsvData } from '../types';
+import { API_BASE_URL } from '../config';
 
 // Main function to be called from the UI
 export const fetchJiraData = async (): Promise<CsvData> => {
-    const response = await fetch('http://localhost:8080/jira/issues', {
+    const response = await fetch(`${API_BASE_URL}/jira/issues`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json',

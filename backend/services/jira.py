@@ -6,21 +6,23 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 # Load from .env.local (if present) for local development, else fallback to system env
+# Load from .env.local (if present) for local development, else fallback to system env
+# In Docker, these are injected by docker-compose
 load_dotenv(dotenv_path=os.path.join(os.getcwd(), ".env.local"), override=True)
 
-JIRA_DOMAIN = os.getenv("VITE_JIRA_DOMAIN")
+JIRA_DOMAIN = os.getenv("JIRA_BASE_URL")
 if JIRA_DOMAIN and JIRA_DOMAIN.startswith('"') and JIRA_DOMAIN.endswith('"'):
     JIRA_DOMAIN = JIRA_DOMAIN[1:-1]
 
-EMAIL = os.getenv("VITE_JIRA_EMAIL")
+EMAIL = os.getenv("JIRA_EMAIL")
 if EMAIL and EMAIL.startswith('"') and EMAIL.endswith('"'):
     EMAIL = EMAIL[1:-1]
 
-API_TOKEN = os.getenv("VITE_JIRA_API_TOKEN")
+API_TOKEN = os.getenv("JIRA_API_TOKEN")
 if API_TOKEN and API_TOKEN.startswith('"') and API_TOKEN.endswith('"'):
     API_TOKEN = API_TOKEN[1:-1]
 
-JQL_QUERY = os.getenv("VITE_JIRA_JQL_QUERY")
+JQL_QUERY = os.getenv("JIRA_JQL_QUERY", "project = VD ORDER BY created ASC")
 if JQL_QUERY and JQL_QUERY.startswith('"') and JQL_QUERY.endswith('"'):
     JQL_QUERY = JQL_QUERY[1:-1]
 

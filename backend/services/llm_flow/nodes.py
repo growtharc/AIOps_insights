@@ -5,7 +5,7 @@ from langchain_core.utils.function_calling import convert_to_openai_function
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END
 
-from ...models import SQLQueryStringResult, SQLQueryRunResult
+from models import SQLQueryStringResult, SQLQueryRunResult
 from .toolkit import QueryGraphState, QueryGraphStateUpdate, SQLDatabaseToolkit, StateUpdaterTool, state_update
 from .prompt import SYSTEM_PROMPT
 

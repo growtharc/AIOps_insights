@@ -6,7 +6,7 @@ from langchain_core.messages import BaseMessage, ToolMessage
 from langchain_core.tools import BaseTool, BaseToolkit
 from pydantic import BaseModel, Field
 
-from ...models import QueryOptions, SQLQueryRunResult, SQLQueryStringResult
+from models import QueryOptions, SQLQueryRunResult, SQLQueryStringResult
 from .utils import SQLDatabaseFromEngine
 
 

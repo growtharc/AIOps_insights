@@ -5,10 +5,10 @@ from typing import AsyncGenerator
 from fastapi import APIRouter, Body
 from fastapi.responses import StreamingResponse
 
-from backend.models import QueryOptions
-from backend.services.llm_flow.graph import QueryGraphService
-from backend.state import session_store
-from backend.services.llm_flow.utils import SQLDatabaseFromEngine
+from models import QueryOptions
+from services.llm_flow.graph import QueryGraphService
+from state import session_store
+from services.llm_flow.utils import SQLDatabaseFromEngine
 
 
 router = APIRouter(prefix="/query", tags=["query"])

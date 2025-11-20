@@ -8,6 +8,7 @@ import {
   getHistorySummary,
   retrySQLWithError,
 } from "./services/openaiService";
+import { API_BASE_URL } from "./config";
 import {
   requiresMultiStepAnalysis,
   performComprehensiveAnalysis,
@@ -64,7 +65,7 @@ function App() {
       // This part is tricky. The current backend expects a file upload.
       // I will modify this to send the data directly to the backend.
       // I will assume a new endpoint `/session/load` that accepts JSON data.
-      const res = await fetch("http://localhost:8080/session/load", {
+      const res = await fetch(`${API_BASE_URL}/session/load`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),
@@ -80,7 +81,7 @@ function App() {
       setChat(newChat);
 
       // Fetch preview rows from backend
-      const previewRes = await fetch("http://localhost:8080/query/execute", {
+      const previewRes = await fetch(`${API_BASE_URL}/query/execute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,7 +162,7 @@ function App() {
 
         const executeQuery = async (sql: string) => {
           if (!sessionId) throw new Error("No active session");
-          const res = await fetch("http://localhost:8080/query/execute", {
+          const res = await fetch(`${API_BASE_URL}/query/execute`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ session_id: sessionId, sql }),
@@ -190,11 +191,10 @@ function App() {
           historyContext
         );
 
-        const richSummary = `${
-          analysis.finalSummary
-        }\n\n**Key Insights:**\n${analysis.keyInsights
-          .map((insight, i) => `${i + 1}. ${insight}`)
-          .join("\n")}`;
+        const richSummary = `${analysis.finalSummary
+          }\n\n**Key Insights:**\n${analysis.keyInsights
+            .map((insight, i) => `${i + 1}. ${insight}`)
+            .join("\n")}`;
 
         if (analysis.isSummaryOnly) {
           const newAssistantMessage: Message = {
@@ -262,7 +262,7 @@ function App() {
         let chartData;
         while (retryCount <= MAX_RETRIES) {
           try {
-            const res = await fetch("http://localhost:8080/query/execute", {
+            const res = await fetch(`${API_BASE_URL}/query/execute`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ session_id: sessionId, sql }),
@@ -276,8 +276,7 @@ function App() {
 
               if (retryCount < MAX_RETRIES) {
                 console.log(
-                  `SQL failed (attempt ${
-                    retryCount + 1
+                  `SQL failed (attempt ${retryCount + 1
                   }), retrying with error feedback...`
                 );
                 assistantResponse = await retrySQLWithError(
@@ -351,37 +350,37 @@ function App() {
 
   return (
     <div className="arcai-app">
-  <Header />
+      <Header />
 
-  <main className="arcai-main">
-    <div className="refresh-row">
-      <button className="arc-btn-refresh" onClick={handleRefresh}>
-        {isRefreshing ? "Refreshing..." : "Refresh Data"}
-      </button>
+      <main className="arcai-main">
+        <div className="refresh-row">
+          <button className="arc-btn-refresh" onClick={handleRefresh}>
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
+          </button>
+        </div>
+
+        <div className="messages-wrapper">
+          {messages.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </main>
+
+      <footer className="arcai-footer">
+        <form className="arc-input-bar" onSubmit={handleSendMessage}>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask your question about Jira data..."
+          />
+          <button type="submit">
+            <SendIcon />
+          </button>
+        </form>
+      </footer>
     </div>
-
-    <div className="messages-wrapper">
-      {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} />
-      ))}
-      <div ref={messagesEndRef} />
-    </div>
-  </main>
-
-  <footer className="arcai-footer">
-    <form className="arc-input-bar" onSubmit={handleSendMessage}>
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask your question about Jira data..."
-      />
-      <button type="submit">
-        <SendIcon />
-      </button>
-    </form>
-  </footer>
-</div>
 
   );
 }
