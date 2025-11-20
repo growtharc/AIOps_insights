@@ -32,10 +32,10 @@
 
 @mixin arc-card {
   background: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-soft);
-  padding: 20px;
+  // border-radius: var(--radius-lg);
+  // border: 1px solid var(--border-light);
+  // box-shadow: var(--shadow-soft);
+  // padding: 20px;
 }
 
 @mixin arc-subtle {
