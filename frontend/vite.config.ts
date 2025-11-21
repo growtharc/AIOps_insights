@@ -2,18 +2,17 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  // envDir defaults to the current directory (frontend/), which is where .env should be
-  // For local development, .env should be in frontend/ directory
-  envDir: '.',
-  server: {
-    port: 3000,
-    host: '0.0.0.0',
-  },
+export default defineConfig(({mode}) => ({
+  base: mode = '/insight_aiops/',
   plugins: [react()],
+  server: {
+    host: true,
+    allowedHosts: ['test.solutions.growtharc.com'],
+    port: 3000
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
     }
   }
-});
+}));

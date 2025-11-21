@@ -39,7 +39,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html/insight_aiops/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
