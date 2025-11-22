@@ -3,25 +3,25 @@ import { NavLink } from "react-router";
 import "./Header.scss";
 import Content from "../../ui/Content";
 
-import UserDropdown from "../UserDropdown/UserDropdown";
+// import UserDropdown from "../UserDropdown/UserDropdown";
 import { IncidentsIcon } from "../../icons/IncidentsIcon";
 import { AnalysisIcon } from "../../icons/AnalysisIcon";
 import { InsightsIcon } from "../../icons/InsightsIcon";
 
 const Header: React.FC = () => {
-  const user = {
-    firstName: "",
-    lastName: "",
-    email: "",
-  };
+  // const user = {
+  //   firstName: "",
+  //   lastName: "",
+  //   email: "",
+  // };
 
-  const onSettingsClick = () => {
-    console.log("setting click");
-  };
+  // const onSettingsClick = () => {
+  //   console.log("setting click");
+  // };
 
-  const onLogout = () => {
-    console.log("logout click");
-  };
+  // const onLogout = () => {
+  //   console.log("logout click");
+  // };
   return (
     <header className="header">
       <Content>
@@ -67,7 +67,7 @@ const Header: React.FC = () => {
               <div className="ping-circle ping-brand"></div>
               <div className="ping-circle ping-contrast"></div>
             </div>
-            <div className="app-name">AIOps Insights</div>
+            <div className="app-name">AI Ops <span>Auto Ticket Resolver</span></div>
           </div>
 
           <div className="header-center">
@@ -102,13 +102,13 @@ const Header: React.FC = () => {
               </NavLink>
             </nav>
           </div>
-          <div className="header-right">
+          {/* <div className="header-right">
             <UserDropdown
               user={user}
               onSettingsClick={onSettingsClick}
               onLogout={onLogout}
             />
-          </div>
+          </div> */}
         </div>
       </Content>
     </header>
