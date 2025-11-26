@@ -160,15 +160,15 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
   // 🔥 Normalize category values
   sortedData = sortedData.map((item) => ({
     ...item,
-    __normalized__: normalize(item[categoryKey]), // add helper key
+    [categoryKey]: normalize(item[categoryKey]),
   }));
 
   // 1️⃣ Numeric ordering
-  if (sortedData.every((d) => typeof d.__normalized__ === "number")) {
+  if (sortedData.every((d) => typeof d[categoryKey] === "number")) {
     sortedData.sort((a, b) => a[categoryKey] - b[categoryKey]);
   }
   // 2️⃣ Month ordering (supports Sep, Sept., September)
-  else if (sortedData.every((d) => isMonth(d.__normalized__))) {
+  else if (sortedData.every((d) => isMonth(d[categoryKey]))) {
     sortedData.sort((a, b) => {
       const ai = MONTHS.findIndex((m) =>
         m.startsWith(normalize(a[categoryKey]).slice(0, 3))
@@ -181,7 +181,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
   }
   // 3️⃣ Special rule: BEFORE AIOPS ALWAYS FIRST
   else if (
-    sortedData.some((d) => normalize(d.__normalized__).includes("before"))
+    sortedData.some((d) => normalize(d[categoryKey]).includes("before"))
   ) {
     sortedData.sort((a, b) => {
       const av = normalize(a[categoryKey]);

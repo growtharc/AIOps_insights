@@ -18,18 +18,12 @@ import {
 } from "recharts";
 import { formatTooltipValue, formatAxisTick } from "../utils/dataBeautifier";
 
-// ---------------------------------------------------------------------------
-// INTERFACE
-// ---------------------------------------------------------------------------
 interface ChartRendererProps {
   type: string;
   data: Record<string, any>[];
   showDownload?: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// COLORS
-// ---------------------------------------------------------------------------
 const COLORS = [
   "#6366F1",
   "#3B82F6",
@@ -69,16 +63,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         ? String(label)
         : payload[0]?.name || "N/A";
 
-    const redundant = payload[0] && payload[0].name === mainLabel;
+    const isMainLabelRedundant = payload[0] && payload[0].name === mainLabel;
 
     return (
       <div className="bg-white/95 backdrop-blur-sm border border-gray-200 p-3 rounded-md shadow-lg text-sm">
-        {!redundant && mainLabel !== "N/A" && (
+        {!isMainLabelRedundant && mainLabel !== "N/A" && (
           <p className="label text-gray-700 font-semibold mb-1">{mainLabel}</p>
         )}
-        {payload.map((item: any, i: number) => (
-          <p key={i} style={{ color: item.color }} className="font-medium">
-            {`${item.name}: ${formatTooltipValue(item.value, item.name)}`}
+        {payload.map((pld: any, index: number) => (
+          <p key={index} style={{ color: pld.color }} className="font-medium">
+            {`${pld.name}: ${formatTooltipValue(pld.value, pld.name)}`}
           </p>
         ))}
       </div>
@@ -88,20 +82,43 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // ---------------------------------------------------------------------------
-// HORIZONTAL TICK (NO ROTATION + MARGIN)
+// DIAGONAL X TICK
 // ---------------------------------------------------------------------------
-const SmoothTick = ({ x, y, payload, formatter }: any) => {
+const DiagonalTick = ({ x, y, payload, formatter }: any) => {
   const value = payload?.value;
   const text = formatter ? formatter(value) : String(value);
-
   return (
-    <g transform={`translate(${x},${y + 10})`}>
-      <text textAnchor="middle" fill="#6b7280" fontSize={12}>
+    <g transform={`translate(${x},${y})`}>
+      <text
+        transform="rotate(-45)"
+        textAnchor="end"
+        fill="#6b7280"
+        fontSize={12}
+      >
         {text}
       </text>
     </g>
   );
 };
+
+// NEW X-TICK (no rotation, margin-top: 10px)
+const SmoothTick = ({ x, y, payload, formatter }: any) => {
+  const value = payload?.value;
+  const text = formatter ? formatter(value) : String(value);
+
+  return (
+    <g transform={`translate(${x},${y + 10})`}> 
+      <text
+        textAnchor="middle"
+        fill="#6b7280"
+        fontSize={12}
+      >
+        {text}
+      </text>
+    </g>
+  );
+};
+
 
 // ---------------------------------------------------------------------------
 // MAIN COMPONENT
@@ -122,15 +139,13 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
   }
 
   // ----------------------------------------------
-  // EXTRACT COLUMN KEYS
+  // Extract keys
   // ----------------------------------------------
   const keys = Object.keys(data[0]);
   const categoryKey = keys[0];
   const valueKeys = keys.slice(1);
 
-  // ----------------------------------------------
-  // UNIVERSAL SORTING (FULLY FIXED)
-  // ----------------------------------------------
+  // 🔥 UNIVERSAL SORTING (IMPROVED)
   const MONTHS = [
     "january",
     "february",
@@ -146,65 +161,55 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
     "december",
   ];
 
-  const normalize = (v: any) =>
-    String(v).trim().toLowerCase().replace(/\./g, "");
-
   const isMonth = (val: any) => {
-    const v = normalize(val);
-    if (MONTHS.includes(v)) return true;
-    return MONTHS.some((m) => m.startsWith(v.slice(0, 3)));
+    if (typeof val !== "string") return false;
+    const v = val.toLowerCase();
+    return (
+      MONTHS.includes(v) || MONTHS.some((m) => v.startsWith(m.slice(0, 3)))
+    ); // support "Sep", "Oct"
   };
 
   let sortedData = [...data];
 
-  // 🔥 Normalize category values
-  sortedData = sortedData.map((item) => ({
-    ...item,
-    __normalized__: normalize(item[categoryKey]), // add helper key
-  }));
-
-  // 1️⃣ Numeric ordering
-  if (sortedData.every((d) => typeof d.__normalized__ === "number")) {
+  // 1️⃣ Numeric sort
+  if (sortedData.every((d) => typeof d[categoryKey] === "number")) {
     sortedData.sort((a, b) => a[categoryKey] - b[categoryKey]);
   }
-  // 2️⃣ Month ordering (supports Sep, Sept., September)
-  else if (sortedData.every((d) => isMonth(d.__normalized__))) {
+  // 2️⃣ Month sorting (supports Sep/Sept/September)
+  else if (sortedData.every((d) => isMonth(d[categoryKey]))) {
     sortedData.sort((a, b) => {
-      const ai = MONTHS.findIndex((m) =>
-        m.startsWith(normalize(a[categoryKey]).slice(0, 3))
+      const aIndex = MONTHS.findIndex((m) =>
+        m.startsWith(String(a[categoryKey]).toLowerCase().slice(0, 3))
       );
-      const bi = MONTHS.findIndex((m) =>
-        m.startsWith(normalize(b[categoryKey]).slice(0, 3))
+      const bIndex = MONTHS.findIndex((m) =>
+        m.startsWith(String(b[categoryKey]).toLowerCase().slice(0, 3))
       );
-      return ai - bi;
+      return aIndex - bIndex;
     });
   }
-  // 3️⃣ Special rule: BEFORE AIOPS ALWAYS FIRST
+  // 3️⃣ Before → After domain sort
   else if (
-    sortedData.some((d) => normalize(d.__normalized__).includes("before"))
+    sortedData.some((d) =>
+      String(d[categoryKey]).toLowerCase().includes("before")
+    )
   ) {
     sortedData.sort((a, b) => {
-      const av = normalize(a[categoryKey]);
-      const bv = normalize(b[categoryKey]);
-
-      const aBefore = av.includes("before");
-      const bBefore = bv.includes("before");
-
-      if (aBefore && !bBefore) return -1;
-      if (bBefore && !aBefore) return 1;
-
+      const av = String(a[categoryKey]).toLowerCase();
+      const bv = String(b[categoryKey]).toLowerCase();
+      if (av.includes("before")) return -1;
+      if (bv.includes("before")) return 1;
       return av.localeCompare(bv);
     });
   }
   // 4️⃣ Alphabetical fallback
   else {
     sortedData.sort((a, b) =>
-      normalize(a[categoryKey]).localeCompare(normalize(b[categoryKey]))
+      String(a[categoryKey]).localeCompare(String(b[categoryKey]))
     );
   }
 
   // ---------------------------------------------------------------------------
-  // DOWNLOAD HANDLER
+  // DOWNLOAD BUTTON HANDLER
   // ---------------------------------------------------------------------------
   const handleDownload = async () => {
     if (!chartRef.current) return;
@@ -226,18 +231,18 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
         }
       });
     } catch (err) {
-      console.error("Download failed:", err);
+      console.error("Failed to download:", err);
     }
   };
 
   // ---------------------------------------------------------------------------
-  // CHART RENDERING
+  // CHART RENDERING SWITCH
   // ---------------------------------------------------------------------------
   const renderChart = () => {
     switch (type.toLowerCase()) {
-      /* ---------------------------
-         DOUGHNUT
-      --------------------------- */
+      // --------------------------------------------------
+      // DOUGHNUT
+      // --------------------------------------------------
       case "doughnut":
       case "doughnut chart":
         if (keys.length < 2)
@@ -252,7 +257,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
             <PieChart>
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-
               <Pie
                 data={sortedData}
                 dataKey={valueKeys[0]}
@@ -273,12 +277,10 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                   const r =
                     Number(innerRadius) +
                     (Number(outerRadius) - Number(innerRadius)) * 0.7;
-
                   const x =
                     Number(cx) + r * Math.cos(-midAngle * (Math.PI / 180));
                   const y =
                     Number(cy) + r * Math.sin(-midAngle * (Math.PI / 180));
-
                   return (
                     <text
                       x={x}
@@ -301,9 +303,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </ResponsiveContainer>
         );
 
-      /* ---------------------------
-         SCORECARD
-      --------------------------- */
+      // --------------------------------------------------
+      // SCORECARD
+      // --------------------------------------------------
       case "scorecard":
         const val = sortedData[0][keys[0]];
         return (
@@ -319,9 +321,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </div>
         );
 
-      /* ---------------------------
-         BAR CHART
-      --------------------------- */
+      // --------------------------------------------------
+      // BAR CHART
+      // --------------------------------------------------
       case "bar chart":
         if (keys.length < 2)
           return (
@@ -337,7 +339,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
               margin={{ top: 10, right: 20, left: 10, bottom: 80 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
               <XAxis
                 dataKey={categoryKey}
                 stroke="#6b7280"
@@ -354,14 +355,12 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                   />
                 }
               />
-
               <YAxis
                 stroke="#6b7280"
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(v) => formatAxisTick(v, valueKeys[0])}
               />
-
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
 
@@ -377,9 +376,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </ResponsiveContainer>
         );
 
-      /* ---------------------------
-         LINE CHART
-      --------------------------- */
+      // --------------------------------------------------
+      // LINE CHART
+      // --------------------------------------------------
       case "line chart":
         if (keys.length < 2)
           return (
@@ -395,7 +394,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
               margin={{ top: 10, right: 20, left: 10, bottom: 80 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
               <XAxis
                 dataKey={categoryKey}
                 stroke="#6b7280"
@@ -412,14 +410,12 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                   />
                 }
               />
-
               <YAxis
                 stroke="#6b7280"
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(v) => formatAxisTick(v, valueKeys[0])}
               />
-
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
 
@@ -438,9 +434,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </ResponsiveContainer>
         );
 
-      /* ---------------------------
-         PIE CHART
-      --------------------------- */
+      // --------------------------------------------------
+      // PIE CHART
+      // --------------------------------------------------
       case "pie chart":
         if (keys.length < 2)
           return (
@@ -454,7 +450,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
             <PieChart>
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-
               <Pie
                 data={sortedData}
                 dataKey={valueKeys[0]}
@@ -472,7 +467,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                   const r =
                     Number(innerRadius) +
                     (Number(outerRadius) - Number(innerRadius)) * 0.5;
-
                   const x =
                     Number(cx) + r * Math.cos(-midAngle * (Math.PI / 180));
                   const y =
@@ -500,14 +494,14 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </ResponsiveContainer>
         );
 
-      /* ---------------------------
-         SCATTER PLOT
-      --------------------------- */
+      // --------------------------------------------------
+      // SCATTER PLOT
+      // --------------------------------------------------
       case "scatter plot":
         if (keys.length < 2)
           return (
             <div className="h-[300px] flex items-center justify-center text-gray-500">
-              Scatter plot requires 2+ numerical columns.
+              Scatter plot requires 2+ columns.
             </div>
           );
 
@@ -515,7 +509,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
               <XAxis
                 type="number"
                 dataKey={keys[0]}
@@ -528,7 +521,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                   />
                 }
               />
-
               <YAxis
                 type="number"
                 dataKey={keys[1]}
@@ -537,100 +529,87 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
                 axisLine={false}
                 tickFormatter={(v) => formatAxisTick(v, keys[1])}
               />
-
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
 
-              <Scatter name="points" data={sortedData} fill={COLORS[0]} />
+              <Scatter name="Data points" data={sortedData} fill={COLORS[0]} />
             </ScatterChart>
           </ResponsiveContainer>
         );
 
-      /* ---------------------------
-         HEAT MAP
-      --------------------------- */
+      // --------------------------------------------------
+      // HEAT MAP
+      // --------------------------------------------------
       case "heat map":
         if (keys.length < 3) {
           return (
             <div className="h-[300px] flex items-center justify-center text-gray-500">
-              Heat map requires 3 columns.
+              Heat map requires 3 columns: an x-axis category, a y-axis
+              category, and a numerical value.
             </div>
           );
         }
-
         const xKey = keys[0];
         const yKey = keys[1];
         const valueKey = keys[2];
 
-        const sortGeneric = (arr: any[]) => {
-          const normalized = arr.map(normalize);
-          const originalMap = normalized.reduce((map, val, i) => {
-            map[val] = arr[i];
-            return map;
-          }, {} as Record<string, any>);
+        // heatmap axis uses same sorting rules
+        const sortedX = [...new Set(sortedData.map((d) => d[xKey]))];
+        const sortedY = [...new Set(sortedData.map((d) => d[yKey]))];
 
+        const sortGeneric = (arr: any[]) => {
           if (arr.every((v) => typeof v === "number")) {
             return [...arr].sort((a, b) => a - b);
           }
-
           if (arr.every((v) => isMonth(v))) {
             return [...arr].sort((a, b) => {
               const ai = MONTHS.findIndex((m) =>
-                m.startsWith(normalize(a).slice(0, 3))
+                m.startsWith(String(a).toLowerCase().slice(0, 3))
               );
               const bi = MONTHS.findIndex((m) =>
-                m.startsWith(normalize(b).slice(0, 3))
+                m.startsWith(String(b).toLowerCase().slice(0, 3))
               );
               return ai - bi;
             });
           }
-
-          if (normalized.some((v) => v.includes("before"))) {
+          if (arr.some((v) => String(v).toLowerCase().includes("before"))) {
             return [...arr].sort((a, b) => {
-              const av = normalize(a);
-              const bv = normalize(b);
-              const aBefore = av.includes("before");
-              const bBefore = bv.includes("before");
-              if (aBefore && !bBefore) return -1;
-              if (bBefore && !aBefore) return 1;
+              const av = String(a).toLowerCase();
+              const bv = String(b).toLowerCase();
+              if (av.includes("before")) return -1;
+              if (bv.includes("before")) return 1;
               return av.localeCompare(bv);
             });
           }
-
-          return [...arr].sort((a, b) =>
-            normalize(a).localeCompare(normalize(b))
-          );
+          return [...arr].sort((a, b) => String(a).localeCompare(String(b)));
         };
 
-        const xLabels = sortGeneric([
-          ...new Set(sortedData.map((d) => d[xKey])),
-        ]);
-        const yLabels = sortGeneric([
-          ...new Set(sortedData.map((d) => d[yKey])),
-        ]);
+        const xLabels = sortGeneric(sortedX);
+        const yLabels = sortGeneric(sortedY);
 
-        const values = sortedData
+        const values = data
           .map((d) => d[valueKey])
           .filter((v): v is number => typeof v === "number" && isFinite(v));
-
         const min = Math.min(...values);
         const max = Math.max(...values);
 
         const getColor = (value?: number) => {
           if (value === undefined || value === null)
-            return "rgb(51 65 85 / 0.5)";
-
-          if (max === min) return "rgb(56 189 248)";
-
-          const p = (value - min) / (max - min);
-          const r = 48 + p * (56 - 48);
-          const g = 63 + p * (189 - 63);
-          const b = 81 + p * (248 - 81);
-          return `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
+            return "rgb(51 65 85 / 0.5)"; // bg-slate-700 with opacity
+          if (max <= min) return "rgb(56, 189, 248)"; // sky-400, for single-value case
+          const percentage = (value - min) / (max - min);
+          const r = 48 + percentage * (56 - 48);
+          const g = 63 + percentage * (189 - 63);
+          const b = 81 + percentage * (248 - 81);
+          return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
         };
 
         return (
           <div className="overflow-x-auto h-[300px] p-4">
+            <style>{`
+                        .has-tooltip .tooltip { display: none; }
+                        .has-tooltip:hover .tooltip { display: block; }
+                    `}</style>
             <table
               className="w-full text-xs text-center border-separate"
               style={{ borderSpacing: "2px" }}
@@ -651,24 +630,25 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
               <tbody>
                 {yLabels.map((yLabel, i) => (
                   <tr key={i}>
-                    <td className="p-2 text-slate-400 text-right truncate">
+                    <td className="p-2 text-slate-400 font-normal text-right truncate">
                       {String(yLabel)}
                     </td>
                     {xLabels.map((xLabel, j) => {
-                      const entry = sortedData.find(
+                      const entry = data.find(
                         (d) => d[yKey] === yLabel && d[xKey] === xLabel
                       );
                       const value = entry ? entry[valueKey] : undefined;
-
                       return (
                         <td
                           key={j}
-                          className="p-2 rounded-md"
+                          className="p-2 rounded-md relative has-tooltip"
                           style={{ backgroundColor: getColor(value) }}
                         >
-                          <span className="hidden group-hover:inline text-white text-xs">
-                            {value}
-                          </span>
+                          <div className="tooltip absolute z-10 bottom-full mb-2 w-max p-1.5 text-xs leading-tight text-white bg-slate-900 rounded-md shadow-lg">
+                            {value !== undefined
+                              ? value.toLocaleString()
+                              : "N/A"}
+                          </div>
                         </td>
                       );
                     })}
@@ -679,9 +659,9 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({
           </div>
         );
 
-      /* ---------------------------
-         TABLE
-      --------------------------- */
+      // --------------------------------------------------
+      // TABLE
+      // --------------------------------------------------
       case "table":
         return (
           <div className="overflow-x-auto h-[300px]">
